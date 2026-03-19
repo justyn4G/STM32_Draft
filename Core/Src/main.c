@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -55,6 +56,10 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+char msg[] = "Hello\r\n";
+volatile uint32_t c =0;
+volatile uint32_t B1_state =0;
+
 
 /* USER CODE END 0 */
 
@@ -88,14 +93,29 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM6_Init();
+  MX_USART2_UART_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim6);
+  HAL_TIM_Base_Start_IT(&htim7);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  if(c> 1999){
+	  HAL_UART_Transmit(&huart2, (uint8_t*) msg, 7, HAL_MAX_DELAY);
+	  c=0;
+	  }
+//		if(c%2 == 0){
+//			B1_state=HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
+//			if(B1_state != GPIO_PIN_RESET){
+//				HAL_UART_Transmit(&huart2, (uint8_t*) "UP\r\n", 4, HAL_MAX_DELAY);
+//
+//			}
+//		}
 //	  HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
 //	  HAL_Delay(1000);
     /* USER CODE END WHILE */
@@ -157,7 +177,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim->Instance == TIM6){
 		HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
 	}
+	if(htim -> Instance == TIM7){
+		c = c+1;
+	}
 }
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	if(GPIO_Pin == B1_Pin){
+			HAL_UART_Transmit(&huart2, (uint8_t*) "UP\r\n", 4, HAL_MAX_DELAY);
+
+	}
+}
+
 /* USER CODE END 4 */
 
 /**
